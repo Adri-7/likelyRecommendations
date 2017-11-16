@@ -1,2 +1,2 @@
 # likelyRecommendations
-A small recommendation system based on likely.js
+A simple recommendation system based on likely.js
