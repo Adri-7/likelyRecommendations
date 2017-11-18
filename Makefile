@@ -3,10 +3,10 @@
 build:
 	docker build -t likelyrec .
 
-run:
+run: build
 	docker run -it --name likelyrec likelyrec
 
-bash:
+bash: run
 	docker exec -it likelyrec bash
 
 clean:

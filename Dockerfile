@@ -7,8 +7,8 @@ RUN apk update && apk add git
 
 WORKDIR /usr/src/likelyRecommendations
 
-#only this now, for taking advantage of the docker layer's cache
-COPY package*.json ./ 
+# only this now, for taking advantage of the docker layer's cache
+COPY package*.json ./  
 
 RUN npm install
 
