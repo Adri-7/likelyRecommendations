@@ -11,3 +11,6 @@ bash:
 
 clean:
 	docker rm -f likelyrec
+
+cleanImage:
+	docker rmi -f likelyrec
