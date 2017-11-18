@@ -1,4 +1,5 @@
 const Recommender = require('likely');
+const similarity = require( 'compute-cosine-similarity' );
 const fs = require('fs');
 
 /*
@@ -24,23 +25,64 @@ fs.readFile('datasets/tiny.base', 'utf8', function (err,baseData) {
 
   console.log("Model built in " + duration + "ms");
 
+  //formatting results of the model recommendations in one big matrix
+  let bigDataMachineDeepLearningMatrixOfDoom = initMatrix(usersCount, itemsCount, 0);
+  for (let user = 1; user < usersCount; user++){
+
+    var recommendationOfDoom = model.recommendations(user);
+    //console.log(recommendationOfDoom);
+
+    for (let recommendation in recommendationOfDoom){
+
+      let objectId = recommendationOfDoom[recommendation][0];
+
+      // because of index shift
+      if (objectId != 0){
+        let rate = recommendationOfDoom[recommendation][1];
+        // let's say that 2 decimals are enough
+        bigDataMachineDeepLearningMatrixOfDoom[user][objectId] = Math.round(100 * rate) / 100;
+      }
+
+    }
+  }
+
+  // WARNING, assuming that tiny.test contains the "results", ie the best recommendations we can predict, may be wrong
   //recommendations evaluation
   fs.readFile('datasets/tiny.test', 'utf8', (err, testData) => {
     if (err) {
       return console.log(err);
     }
 
-    //Recommandations matrix parsing
-    let recomMatrix = parseDatasetLines(usersCount, itemsCount, 0, baseData.split('\n'));
+    //recommendations matrix parsing
+    let perfectRecomMatrix = parseDatasetLines(usersCount, itemsCount, 0, testData.split('\n'));
 
-    //TODO read users test data
+    let cosineSimilarities = new Array(usersCount);
+    for (let user = 1; user < usersCount; user++){
+      cosineSimilarities[user] = similarity( bigDataMachineDeepLearningMatrixOfDoom[user], perfectRecomMatrix[user] )
+    }
+
+    console.log("perfects recommendations matrix");
+    console.log(perfectRecomMatrix);
+    console.log("\r\n recommendation");
+    console.log(bigDataMachineDeepLearningMatrixOfDoom);
+    console.log("\r\n cosine similarities (1 is the best, 0 is the worst");
+    console.log("1st item is empty, because user 0 doesn't exist, it's a shift if the ids");
+    console.log(cosineSimilarities);
+
+    //TODO read users test data DONE
 
     //TODO generate users vectors recommendations
+    // should we make that, or is this matrix full of "real opinions" ? (ie the most accurate recommendation)
+    for (let user = 1; user < usersCount; user++ ){
+      // TODO
+    }
 
-    //TODO use cosine similarity to compare test data and recommandations
+    //TODO use cosine similarity to compare test data and recommendations
   });
 
+  /*
   //Generation of user 1 vector (in order to calculate cosine similiraty) --> to be used above in second todo
+
   var recommendations = model.recommendations(1);
 
   recommendations.sort((a,b) => {
@@ -55,8 +97,10 @@ fs.readFile('datasets/tiny.base', 'utf8', function (err,baseData) {
     }
   }
 
-  console.log(recommendations);
-  console.log(userVector);
+  //console.log(recommendations);
+  //console.log(userVector);
+  */
+
 });
 
 // -----------------------------------------------------------------------------

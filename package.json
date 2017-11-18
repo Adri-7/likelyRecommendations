@@ -4,6 +4,7 @@
   "description": "A simple recommendations system based on likely.js",
   "main": "index.js",
   "dependencies": {
+    "compute-cosine-similarity": "^1.0.0",
     "likely": "^0.2.0"
   },
   "devDependencies": {},
