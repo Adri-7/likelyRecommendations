@@ -1,17 +1,42 @@
-var Recommender = require('likely');
+const Recommender = require('likely');
+const fs = require('fs');
 
-var inputMatrix = [ [ 1, 2, 3, 0, 8, 2 ],
-                    [ 4, 0, 5, 6, 4, 6 ],
-                    [ 7, 8, 0, 9, 7, 0 ],
-                    [ 7, 8, 0, 9, 9, 7 ],
-                    [ 2, 1, 3, 9, 0, 0 ]
-                  ];
+fs.readFile('datasets/u1.base', 'utf8', function (err,data) {
+  if (err) {
+    return console.log(err);
+  }
 
-var rowLabels = ['fdp1', 'fdp2', 'fdp3', 'fdp4', 'fdp5'];
-var colLabels = ['Red', 'Blue', 'Green', 'Purple', 'Black', 'White'];
+  //Matrix init
+  let inputMatrix = Array();
 
-var model = Recommender.buildModel(inputMatrix, rowLabels, colLabels);
+  for(let i = 0; i <= 943; i++){
+    inputMatrix.push(new Array());
 
-var recommendations = model.recommendations('fdp5');
+    for(let j = 0; j <= 1682; j++){
+      inputMatrix[i].push(0);
+    }
+  }
 
-console.log(recommendations);
+  //Read profiles data
+  let lines = data.split('\n');
+
+  for(let line of lines){
+    if(line){
+      let [u, i, r, t] = line.split('\t');
+
+      inputMatrix[parseInt(u)][parseInt(i)] = parseInt(r);
+    }
+  }
+
+  //Run matrix computations
+  let start = Date.now();
+
+  var model = Recommender.buildModel(inputMatrix);
+
+  let duration = Date.now() - start;
+
+  //Get recommendations for user 0 ? (never been tested with int index)
+  var recommendations = model.recommendations(0);
+
+  //console.log(recommendations);
+});
