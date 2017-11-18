@@ -15,20 +15,7 @@ fs.readFile('datasets/tiny.base', 'utf8', function (err,baseData) {
     return console.log(err);
   }
 
-  //Matrix init
-  let inputMatrix = initMatrix(usersCount, itemsCount, 0);
-
-  //Read profiles data
-  let lines = baseData.split('\n');
-
-  for(let line of lines){
-    //we don't want to handle empty lines
-    if(line){
-      let [u, i, r, t] = line.split('\t');
-
-      inputMatrix[parseInt(u)][parseInt(i)] = parseInt(r);
-    }
-  }
+  let inputMatrix = parseDatasetLines(usersCount, itemsCount, 0, baseData.split('\n'));
 
   //Run matrix computations
   let start = Date.now();
@@ -39,6 +26,13 @@ fs.readFile('datasets/tiny.base', 'utf8', function (err,baseData) {
 
   //recommendations evaluation
   fs.readFile('datasets/tiny.test', 'utf8', (err, testData) => {
+    if (err) {
+      return console.log(err);
+    }
+
+    //Recommandations matrix parsing
+    let recomMatrix = parseDatasetLines(usersCount, itemsCount, 0, baseData.split('\n'));
+
     //TODO read users test data
 
     //TODO generate users vectors recommendations
@@ -82,4 +76,20 @@ function initMatrix(rows, cols, value){
   }
 
   return matrix;
+}
+
+// parse the lines of the dataset, and return a rows*cols matrix
+function parseDatasetLines(rows, cols, value, lines){
+  let returnMatrix = initMatrix(rows, cols, value);
+
+  for(let line of lines){
+    //we don't want to handle empty lines
+    if(line){
+      let [u, i, r, t] = line.split('\t');
+
+      returnMatrix[parseInt(u)][parseInt(i)] = parseInt(r);
+    }
+  }
+
+  return returnMatrix;
 }
