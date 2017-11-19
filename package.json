@@ -1,7 +1,11 @@
 {
   "name": "likely-recommendations",
   "version": "1.0.0",
-  "description": "A simple recommendations system based on likely.js",
+  "description": "A simple project to evaluate likely.js recommendations engine",
+  "author": "Adrien Coppola",
+  "contributors": [{
+    "name": "Nathan Kienlen"
+  }],
   "main": "index.js",
   "dependencies": {
     "compute-cosine-similarity": "^1.0.0",
@@ -18,12 +22,11 @@
   },
   "keywords": [
     "recommendations",
-    "movies",
-    "tv",
-    "shows"
+    "evaluation",
+    "movielens datasets",
+    "likely.js"
   ],
-  "author": "Adrien Coppola",
-  "license": "WTFPL",
+  "license": "GPL-3.0",
   "bugs": {
     "url": "https://github.com/Adri-7/likelyRecommendations/issues"
   },
