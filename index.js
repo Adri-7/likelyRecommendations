@@ -46,7 +46,6 @@ fs.readFile('datasets/tiny.base', 'utf8', function (err,baseData) {
     }
   }
 
-  // WARNING, assuming that tiny.test contains the "results", ie the best recommendations we can predict, may be wrong
   //recommendations evaluation
   fs.readFile('datasets/tiny.test', 'utf8', (err, testData) => {
     if (err) {
@@ -68,39 +67,7 @@ fs.readFile('datasets/tiny.base', 'utf8', function (err,baseData) {
     console.log("\r\n cosine similarities (1 is the best, 0 is the worst");
     console.log("1st item is empty, because user 0 doesn't exist, it's a shift if the ids");
     console.log(cosineSimilarities);
-
-    //TODO read users test data DONE
-
-    //TODO generate users vectors recommendations
-    // should we make that, or is this matrix full of "real opinions" ? (ie the most accurate recommendation)
-    for (let user = 1; user < usersCount; user++ ){
-      // TODO
-    }
-
-    //TODO use cosine similarity to compare test data and recommendations
   });
-
-  /*
-  //Generation of user 1 vector (in order to calculate cosine similiraty) --> to be used above in second todo
-
-  var recommendations = model.recommendations(1);
-
-  recommendations.sort((a,b) => {
-    return a[0] - b[0];
-  });
-
-  let userVector = Array();
-  for(let r of recommendations){
-    //we dont keep this one because it's just noise
-    if(r[0] !== 0){
-      userVector.push(r[1]);
-    }
-  }
-
-  //console.log(recommendations);
-  //console.log(userVector);
-  */
-
 });
 
 // -----------------------------------------------------------------------------
