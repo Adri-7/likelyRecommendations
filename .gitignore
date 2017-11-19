@@ -1,1 +1,5 @@
+# node files
 node_modules
+
+# logs
+logs/*.result
