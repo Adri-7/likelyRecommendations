@@ -3,20 +3,20 @@ const similarity = require( 'compute-cosine-similarity' );
 const fs = require('fs');
 
 // '+1' because ids begin with 1
-const usersCount = 5+1; //1682+1;
-const itemsCount = 14+1; //943+1;
-const datasetName = "tiny"; //Choose you dataset here
+const USERS_COUNT = 5+1 //1682+1;
+const ITEMS_COUNT = 14+1 //943+1;
+const DATASET_NAME = "tiny"; //Choose you dataset here
 
-const baseFile = `datasets/${datasetName}.base`;
-const testFile = `datasets/${datasetName}.test`;
-const resultFile = `logs/${datasetName}.result`;
+const BASE_FILE = `datasets/${DATASET_NAME}.base`;
+const TEST_FILE = `datasets/${DATASET_NAME}.test`;
+const RESULT_FILE = `logs/${DATASET_NAME}.result`;
 
-fs.readFile(baseFile, 'utf8', function (err,baseData) {
+fs.readFile(BASE_FILE, 'utf8', function (err,baseData) {
   if (err) {
     throw err;
   }
 
-  let inputMatrix = parseDatasetLines(usersCount, itemsCount, 0, baseData);
+  let inputMatrix = parseDatasetLines(USERS_COUNT, ITEMS_COUNT, 0, baseData);
 
   //Run matrix computations
   let start = Date.now();
@@ -26,8 +26,8 @@ fs.readFile(baseFile, 'utf8', function (err,baseData) {
   console.log(`Model built in ${duration}ms`);
 
   //formatting results of the model recommendations in one big matrix
-  let bigDataMachineDeepLearningMatrixOfDoom = initMatrix(usersCount, itemsCount, 0);
-  for (let user = 1; user < usersCount; user++){
+  let bigDataMachineDeepLearningMatrixOfDoom = initMatrix(USERS_COUNT, ITEMS_COUNT, 0);
+  for (let user = 1; user < USERS_COUNT; user++){
 
     var recommendationOfDoom = model.recommendations(user);
     //console.log(recommendationOfDoom);
@@ -46,30 +46,30 @@ fs.readFile(baseFile, 'utf8', function (err,baseData) {
   }
 
   //recommendations evaluation
-  fs.readFile(testFile, 'utf8', (err, testData) => {
+  fs.readFile(TEST_FILE, 'utf8', (err, testData) => {
     if (err) {
       throw err;
     }
 
     //Make sur that we won't append in a non empty file
-    if(fs.existsSync(resultFile)){
-      fs.unlink(resultFile, (err) => {
+    if(fs.existsSync(RESULT_FILE)){
+      fs.unlink(RESULT_FILE, (err) => {
         if(err) throw err;
       });
     }
 
     //recommendations matrix parsing
-    let perfectRecomMatrix = parseDatasetLines(usersCount, itemsCount, 0, testData);
-    let cosineSimilarities = new Array(usersCount);
+    let perfectRecomMatrix = parseDatasetLines(USERS_COUNT, ITEMS_COUNT, 0, testData);
+    let cosineSimilarities = new Array(USERS_COUNT);
 
-    for (let user = 1; user < usersCount; user++){
+    for (let user = 1; user < USERS_COUNT; user++){
       //Cosine similarity between recommendations and real ratings
       cosineSimilarities[user] = similarity( bigDataMachineDeepLearningMatrixOfDoom[user], perfectRecomMatrix[user] );
 
       //We then write it to a file
       let line = cosineSimilarities[user] + '\n';
 
-      fs.appendFile(resultFile, line, (err) => {
+      fs.appendFile(RESULT_FILE, line, (err) => {
         if (err) throw err;
       });
     }
