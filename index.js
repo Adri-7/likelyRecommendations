@@ -2,19 +2,18 @@ const Recommender = require('likely');
 const similarity = require( 'compute-cosine-similarity' );
 const fs = require('fs');
 
-/*
 // '+1' because ids begin with 1
-const usersCount = 1682+1;
-const itemsCount = 943+1;
-*/
+const usersCount = 5+1; //1682+1;
+const itemsCount = 14+1; //943+1;
+const datasetName = "tiny"; //Choose you dataset here
 
-const usersCount = 5+1;
-const itemsCount = 14+1;
-const datasetName = "tiny";
+const baseFile = `datasets/${datasetName}.base`;
+const testFile = `datasets/${datasetName}.test`;
+const resultFile = `logs/${datasetName}.result`;
 
-fs.readFile(`datasets/${datasetName}.base`, 'utf8', function (err,baseData) {
+fs.readFile(baseFile, 'utf8', function (err,baseData) {
   if (err) {
-    return console.log(err);
+    throw err;
   }
 
   let inputMatrix = parseDatasetLines(usersCount, itemsCount, 0, baseData);
@@ -47,17 +46,32 @@ fs.readFile(`datasets/${datasetName}.base`, 'utf8', function (err,baseData) {
   }
 
   //recommendations evaluation
-  fs.readFile(`datasets/${datasetName}.test`, 'utf8', (err, testData) => {
+  fs.readFile(testFile, 'utf8', (err, testData) => {
     if (err) {
-      return console.log(err);
+      throw err;
+    }
+
+    //Make sur that we won't append in a non empty file
+    if(fs.existsSync(resultFile)){
+      fs.unlink(resultFile, (err) => {
+        if(err) throw err;
+      });
     }
 
     //recommendations matrix parsing
     let perfectRecomMatrix = parseDatasetLines(usersCount, itemsCount, 0, testData);
-
     let cosineSimilarities = new Array(usersCount);
+
     for (let user = 1; user < usersCount; user++){
-      cosineSimilarities[user] = similarity( bigDataMachineDeepLearningMatrixOfDoom[user], perfectRecomMatrix[user] )
+      //Cosine similarity between recommendations and real ratings
+      cosineSimilarities[user] = similarity( bigDataMachineDeepLearningMatrixOfDoom[user], perfectRecomMatrix[user] );
+
+      //We then write it to a file
+      let line = cosineSimilarities[user] + '\n';
+
+      fs.appendFile(resultFile, line, (err) => {
+        if (err) throw err;
+      });
     }
 
     /*
