@@ -2,7 +2,6 @@
 //                                   Imports
 // -----------------------------------------------------------------------------
 const Recommender = require('likely');
-const similarity = require( 'compute-cosine-similarity' );
 const fs = require('fs');
 
 
