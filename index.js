@@ -86,7 +86,7 @@ function processDataset(name){
         console.log("  -> done\n");
 
         //MSE computing (from a matrix of recommendations and an array of <itemId, rating> pairs for each user)
-        console.log("Compute mean square error between recommendations and real ratings...");
+        console.log("Compute mean squared error between recommendations and real ratings...");
         for(let user = 0; user < USERS_COUNT; user++){
           let mse = 0;
 
@@ -99,7 +99,7 @@ function processDataset(name){
 
           mse = mse / realRatings.length;
 
-          //Append mean square error for each user in the file
+          //Append mean squared error for each user in the file
           fs.appendFile(resultFile, `${mse}\n`, (err) => {
             if (err){
               reject(err);
