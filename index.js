@@ -9,17 +9,17 @@ const fs = require('fs');
 // -----------------------------------------------------------------------------
 //                                   Const
 // -----------------------------------------------------------------------------
-const USERS_COUNT = 5//943;
-const ITEMS_COUNT = 14//1682;
+const USERS_COUNT = 943;
+const ITEMS_COUNT = 1682;
 //Choose your datasets here (don't forget to update dimensions if needed)
-const DATASETS_NAMES = ["tiny"]//['u1', 'u2', 'u3', 'u4', 'u5'];
+const DATASETS_NAMES = ['u1', 'u2', 'u3', 'u4', 'u5'];
 
 
 // -----------------------------------------------------------------------------
 //                                   main
 // -----------------------------------------------------------------------------
 for(name of DATASETS_NAMES){
-  //TODO maybe we could handle promises
+  //TODO maybe we could handle promises to make it totally sequential
   processDataset(name)
     .catch((err) => {
       console.error(err);
@@ -30,7 +30,6 @@ for(name of DATASETS_NAMES){
 // -----------------------------------------------------------------------------
 //                             Helper functions
 // -----------------------------------------------------------------------------
-
 /**
  * processDataset - run computations on datasets/'name'.base and compare with
  *  datasets/'name'.test to evaluate
@@ -41,44 +40,31 @@ function processDataset(name){
   let resultFile = `logs/${name}.result`;
 
   return new Promise((resolve, reject) => {
+    //Opens base data file
     fs.readFile(baseFile, 'utf8', function (err,baseData) {
       if (err) {
         reject(err);
         return;
       }
 
+      //Base file parsing
       console.log(`Parsing ${name}.base file...`);
-      let inputMatrix = parseDatasetLines(USERS_COUNT, ITEMS_COUNT, baseData);
-      console.log("done");
+      let inputMatrix = parseBaseDataset(USERS_COUNT, ITEMS_COUNT, baseData);
+      console.log("  -> done\n");
 
-      console.log(`Running ${name} model computations...`);
+      //Model building
+      console.log(`Building model...`);
       let start = Date.now();
       let model = Recommender.buildModel(inputMatrix);
       let duration = Date.now() - start;
       console.log(`done in ${duration}ms`);
 
-      //TODO rewrite this part to keep only pertinent data
-      //formatting results of the model recommendations in one big matrix
-      let bigDataMachineDeepLearningMatrixOfDoom = initMatrix(USERS_COUNT, ITEMS_COUNT, 0);
-      for (let user = 1; user < USERS_COUNT; user++){
+      //Formatting recommendations in a matrix
+      console.log("Generating recommendations matrix from model...");
+      let recommendationsMatrix = generateUsersRecommendationsMatrix(model);
+      console.log("  -> done\n");
 
-        var recommendationOfDoom = model.recommendations(user);
-        //console.log(recommendationOfDoom);
-
-        for (let recommendation in recommendationOfDoom){
-
-          let objectId = recommendationOfDoom[recommendation][0];
-
-          // because of index shift
-          if (objectId != 0){
-            let rate = recommendationOfDoom[recommendation][1];
-            // let's say that 2 decimals are enough
-            bigDataMachineDeepLearningMatrixOfDoom[user][objectId] = Math.round(100 * rate) / 100;
-          }
-        }
-      }
-
-      //recommendations evaluation
+      //Opens test data file
       fs.readFile(testFile, 'utf8', (err, testData) => {
         if (err) {
           reject(err);
@@ -94,29 +80,42 @@ function processDataset(name){
           });
         }
 
-        //recommendations matrix parsing
-        let perfectRecomMatrix = parseDatasetLines(USERS_COUNT, ITEMS_COUNT, testData);
-        let cosineSimilarities = new Array(USERS_COUNT);
+        //test file parsing
+        console.log(`Parsing ${name}.test file...`);
+        let realRatings = parseTestDataset(testData);
+        console.log("  -> done\n");
 
-        for (let user = 1; user < USERS_COUNT; user++){
-          //Cosine similarity between recommendations and real ratings
-          cosineSimilarities[user] = similarity( bigDataMachineDeepLearningMatrixOfDoom[user], perfectRecomMatrix[user] );
+        //MSE computing (from a matrix of recommendations and an array of <itemId, rating> pairs for each user)
+        console.log("Compute mean square error between recommendations and real ratings...");
+        for(let user = 0; user < USERS_COUNT; user++){
+          let mse = 0;
 
-          //We then write it to the file
-          let line = cosineSimilarities[user] + '\n';
+          //Sum of square errors
+          for(let rating of realRatings[user]){
+            let prediction = recommendationsMatrix[user][rating[0]];
 
-          fs.appendFile(resultFile, line, (err) => {
-            if (err) reject(err);
+            mse += Math.pow(prediction - rating[1], 2);
+          }
+
+          mse = mse / realRatings.length;
+
+          //Append mean square error for each user in the file
+          fs.appendFile(resultFile, `${mse}\n`, (err) => {
+            if (err){
+              reject(err);
+              return;
+            }
           });
         }
+        console.log("  -> done\n");
+        console.log("Results can be found in log folder");
 
-        //If we got here, then nothing wrong happened
+        //If we got here, then nothing wrong happened, we can resolve
         resolve();
       });
     });
   });
 }
-
 
 /**
  * initMatrix - init a matrix rows*cols with value
@@ -135,11 +134,10 @@ function initMatrix(rows, cols, value){
   return matrix;
 }
 
-
 /**
- * parseDatasetLines - parses the dataset, and return a rows*cols matrix
+ * parseBaseDataset - parses the dataset, and returns a rows*cols matrix
  */
-function parseDatasetLines(rows, cols, data){
+function parseBaseDataset(rows, cols, data){
   let resultMatrix = initMatrix(rows, cols, 0);
   let lines = data.split('\n');
 
@@ -155,4 +153,46 @@ function parseDatasetLines(rows, cols, data){
   }
 
   return resultMatrix;
+}
+
+/**
+ * parseTestDataset - parses the dataset, and returns a matrix composed of arrays
+ * populated with <itemId, rating> pairs for each user
+ */
+function parseTestDataset(data){
+  let resultMatrix = initMatrix(USERS_COUNT, 0, 0);
+  let lines = data.split('\n');
+
+  for(let line of lines){
+    //we don't want to handle empty lines
+    if(line){
+      let [user, item, rating, timestamp] = line.split('\t');
+
+      //-1 to correct ids
+      resultMatrix[parseInt(user)-1].push([parseInt(item)-1, parseInt(rating)]);
+    }
+  }
+
+  return resultMatrix;
+}
+
+/**
+ * generateUsersRecommendationsMatrix - Generate a matrix with recommendations
+ */
+function generateUsersRecommendationsMatrix(model){
+  //TODO check if we can test different parameters
+  let recommendations = initMatrix(USERS_COUNT, ITEMS_COUNT, 0);
+
+  for (let user = 0; user < USERS_COUNT; user++){
+    var userRecommendations = model.recommendations(user);
+
+    for (let recommendation of userRecommendations){
+      let rating =recommendation[1];
+
+      // let's say that 2 decimals are enough
+      recommendations[user][recommendation[0]] = (Math.round(100 * rating) / 100);
+    }
+  }
+
+  return recommendations;
 }
