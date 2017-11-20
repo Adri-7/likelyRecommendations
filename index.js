@@ -97,7 +97,7 @@ function processDataset(name){
             mse += Math.pow(prediction - rating[1], 2);
           }
 
-          mse = mse / realRatings.length;
+          mse = mse / realRatings[user].length;
 
           //Append mean squared error for each user in the file
           fs.appendFile(resultFile, `${mse}\n`, (err) => {
