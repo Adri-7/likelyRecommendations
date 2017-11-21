@@ -17,18 +17,27 @@ const DATASETS_NAMES = ['u1', 'u2', 'u3', 'u4', 'u5'];
 // -----------------------------------------------------------------------------
 //                                   main
 // -----------------------------------------------------------------------------
-for(name of DATASETS_NAMES){
-  //TODO maybe we could handle promises to make it totally sequential
-  processDataset(name)
-    .catch((err) => {
-      console.error(err);
-    });
-}
+launch(0);
 
 
 // -----------------------------------------------------------------------------
 //                             Helper functions
 // -----------------------------------------------------------------------------
+/**
+ * launch - launch evaluations
+ */
+function launch(index){
+  if(index >= DATASETS_NAMES.length){
+    return;
+  }
+
+  processDataset(DATASETS_NAMES[index])
+    .then(launch(index+1))
+    .catch((err) => {
+      console.error(err);
+    });
+}
+
 /**
  * processDataset - run computations on datasets/'name'.base and compare with
  *  datasets/'name'.test to evaluate
@@ -56,7 +65,7 @@ function processDataset(name){
       let start = Date.now();
       let model = Recommender.buildModel(inputMatrix);
       let duration = Date.now() - start;
-      console.log(`done in ${duration}ms`);
+      console.log(`done in ${duration}ms\n`);
 
       //Formatting recommendations in a matrix
       console.log("Generating recommendations matrix from model...");
@@ -89,7 +98,7 @@ function processDataset(name){
         for(let user = 0; user < USERS_COUNT; user++){
           let mse = 0;
 
-          //Sum of square errors
+          //Sum of squared errors
           for(let rating of realRatings[user]){
             let prediction = recommendationsMatrix[user][rating[0]];
 

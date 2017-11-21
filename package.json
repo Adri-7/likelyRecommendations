@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "description": "A simple project to evaluate likely.js recommendations engine",
   "author": "Adrien Coppola",
-  "contributors": [{
-    "name": "Nathan Kienlen"
-  }],
+  "contributors": [
+    {
+      "name": "Nathan Kienlen"
+    }
+  ],
   "main": "index.js",
   "dependencies": {
     "likely": "^0.2.0"
